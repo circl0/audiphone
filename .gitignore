@@ -1,0 +1,5 @@
+src/platform/stm32f303/Listings
+src/platform/stm32f303/Objects
+src/platform/stm32f303/RTE
+*.uvguix.*
+*.uvoptx
