@@ -40,7 +40,7 @@ ap_bool ap_adc_dac_timer_init()
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure); 
 	TIM_TimeBaseStructure.TIM_Period = 125 - 1;         
-	TIM_TimeBaseStructure.TIM_Prescaler = 72 - 1;
+	TIM_TimeBaseStructure.TIM_Prescaler = 64 - 1;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;    
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
