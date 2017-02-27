@@ -85,11 +85,13 @@ ap_uint32_t ap_dac_write_one_frame(ap_uint16_t* buf, ap_uint32_t len)
 {
 	ap_uint32_t cpy_len = AP_AGC_BUFFER_LENGTH;
 	while (!ap_dac_writable);
+	ap_interrupt_disable();
 	ap_dac_writable = AP_FALSE;
 	if (len < AP_AGC_BUFFER_LENGTH) {
 		cpy_len = len;
 	}
 	memcpy(ap_dac_val, buf, sizeof(ap_uint16_t) * cpy_len);
+	ap_interrupt_enable();
 	return cpy_len / sizeof(ap_uint16_t);
 }
 
@@ -98,6 +100,6 @@ void DMA2_Channel3_IRQHandler(void)
   if(DMA_GetITStatus(DMA2_IT_TC3))
   {
     ap_dac_writable = AP_TRUE;
-    DMA_ClearITPendingBit(DMA1_IT_GL1);
+    DMA_ClearITPendingBit(DMA2_IT_TC3);
   }
 }
