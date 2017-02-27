@@ -19,20 +19,12 @@
 #include "ap_hw_config.h"
 #include "ap_hw_internal.h"
 
-#define AP_AGC_BUFFER_LENGTH 32
+#define AP_AGC_BUFFER_LENGTH 10
 
 static volatile ap_bool ap_dac_writable;
 static ap_uint16_t ap_dac_val[AP_AGC_BUFFER_LENGTH];
 
-#define AP_DAC_ADDRESS 0x38
-#define AP_DAC_BUFFER_LEN 2
-#define DAC_DHR12R1_ADDRESS      0x40007408
-
-const ap_uint16_t Sine12bit[32] = {
-                      2047, 2447, 2831, 3185, 3498, 3750, 3939, 4056, 4095, 4056,
-                      3939, 3750, 3495, 3185, 2831, 2447, 2047, 1647, 1263,  909, 
-                       599,  344,  155,   38,    0,   38,  155,  344,  599,  909, 
-                      1263, 1647};	  
+#define DAC_DHR12R1_ADDRESS      0x40007408 
 
 ap_bool ap_dac_init(ap_int16_t type)
 {
@@ -55,9 +47,9 @@ ap_bool ap_dac_init(ap_int16_t type)
 	
 	DMA_InitTypeDef DMA_InitStructure;
 	DMA_InitStructure.DMA_PeripheralBaseAddr = DAC_DHR12R1_ADDRESS;
-	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&ap_dac_val;
+	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)ap_dac_val;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-	DMA_InitStructure.DMA_BufferSize = 1;
+	DMA_InitStructure.DMA_BufferSize = 10;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
