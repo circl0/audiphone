@@ -39,7 +39,7 @@ ap_bool ap_adc_dac_timer_init()
   
 	/* Time base configuration */
 	TIM_TimeBaseStructInit(&TIM_TimeBaseStructure); 
-	TIM_TimeBaseStructure.TIM_Period = 125 - 1;         
+	TIM_TimeBaseStructure.TIM_Period = 64 - 1;         
 	TIM_TimeBaseStructure.TIM_Prescaler = 64 - 1;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;    
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  
@@ -47,8 +47,7 @@ ap_bool ap_adc_dac_timer_init()
 
 	/* TIM2 TRGO selection */
 	TIM_SelectOutputTrigger(TIM2, TIM_TRGOSource_Update);
-  
-	/* TIM2 enable counter */
+	
 	TIM_Cmd(TIM2, ENABLE);
 	return AP_TRUE;
 }

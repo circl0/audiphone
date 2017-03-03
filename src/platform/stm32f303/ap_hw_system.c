@@ -50,9 +50,9 @@ ap_bool ap_system_init()
 	ap_system_timer_init();
 	
 	ap_uart_init();
-	//ap_op_init();
+	ap_op_init();
 	ap_adc_init(AP_ADC_12BIT);
-	//ap_dac_init(AP_DAC_12BIT);
+	ap_dac_init(AP_DAC_12BIT);
 
 	//ap_interrupt_enable();
 	

@@ -17,17 +17,18 @@
 #include <string.h>
 #include "ap_hardware.h"
 #include "ap_hw_config.h"
+#include "ap_hw_internal.h"
 #include "common/ap_log.h"
 
 #define ADC_DR_ADDRESS    ((ap_uint32_t)0x50000040)
-#define AP_AGC_BUFFER_LENGTH 10
+#define AP_AGC_BUFFER_LENGTH 256
 
 static volatile ap_bool ap_adc_readable;
-static ap_uint16_t ap_adc_val[AP_AGC_BUFFER_LENGTH];
+static ap_uint16_t ap_adc_buffer[AP_AGC_BUFFER_LENGTH];
 
 ap_bool ap_adc_init(ap_int16_t type)
 {
-	RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div8);  
+	RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div128);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_ADC12, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
@@ -48,7 +49,7 @@ ap_bool ap_adc_init(ap_int16_t type)
 	
 	DMA_InitTypeDef DMA_InitStructure;
 	DMA_InitStructure.DMA_PeripheralBaseAddr = ADC_DR_ADDRESS;
-	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&ap_adc_val;
+	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)ap_adc_buffer;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
 	DMA_InitStructure.DMA_BufferSize = AP_AGC_BUFFER_LENGTH;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -112,7 +113,7 @@ ap_uint32_t ap_adc_read_one_frame(ap_uint16_t* buf, ap_uint32_t len)
 	if (len < AP_AGC_BUFFER_LENGTH) {
 		cpy_len = len;
 	}
-	memcpy(buf, ap_adc_val, sizeof(ap_uint16_t) * cpy_len);
+	memcpy(buf, ap_adc_buffer, sizeof(ap_uint16_t) * cpy_len);
 	ap_interrupt_enable();
 	return cpy_len / sizeof(ap_uint16_t);
 }
@@ -121,8 +122,7 @@ void DMA1_Channel1_IRQHandler(void)
 {
 	if(DMA_GetITStatus(DMA1_IT_TC1)) {
 		DMA_ClearITPendingBit(DMA1_IT_TC1);
-		ap_adc_readable = AP_TRUE;
-		
+		ap_adc_readable = AP_TRUE;	
 	}
 }
 

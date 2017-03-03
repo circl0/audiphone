@@ -26,9 +26,4 @@ ap_bool ap_adc_dac_timer_init();
 
 ap_bool ap_op_init();
 
-ap_bool ap_i2c_init();
-
-ap_bool ap_i2c_write(ap_int8_t ad, ap_int8_t* buf, ap_uint16_t len);
-
-
 #endif /* SRC_HW_MSP430F43X_AP_HW_INTERNAL_H_ */

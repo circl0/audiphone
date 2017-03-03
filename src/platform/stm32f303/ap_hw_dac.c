@@ -19,10 +19,10 @@
 #include "ap_hw_config.h"
 #include "ap_hw_internal.h"
 
-#define AP_AGC_BUFFER_LENGTH 10
+#define AP_AGC_BUFFER_LENGTH 256
 
 static volatile ap_bool ap_dac_writable;
-static ap_uint16_t ap_dac_val[AP_AGC_BUFFER_LENGTH];
+static ap_uint16_t ap_dac_buffer[AP_AGC_BUFFER_LENGTH];
 
 #define DAC_DHR12R1_ADDRESS      0x40007408 
 
@@ -47,12 +47,12 @@ ap_bool ap_dac_init(ap_int16_t type)
 	
 	DMA_InitTypeDef DMA_InitStructure;
 	DMA_InitStructure.DMA_PeripheralBaseAddr = DAC_DHR12R1_ADDRESS;
-	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)ap_dac_val;
+	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)ap_dac_buffer;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-	DMA_InitStructure.DMA_BufferSize = 10;
+	DMA_InitStructure.DMA_BufferSize = AP_AGC_BUFFER_LENGTH;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
 	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
 	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
 	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
@@ -62,7 +62,7 @@ ap_bool ap_dac_init(ap_int16_t type)
 	DMA_ITConfig(DMA2_Channel3, DMA_IT_TC, ENABLE);
 	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_InitStructure.NVIC_IRQChannel = DMA2_Channel3_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
@@ -82,16 +82,15 @@ ap_uint32_t ap_dac_write_one_frame(ap_uint16_t* buf, ap_uint32_t len)
 	if (len < AP_AGC_BUFFER_LENGTH) {
 		cpy_len = len;
 	}
-	memcpy(ap_dac_val, buf, sizeof(ap_uint16_t) * cpy_len);
+	memcpy(ap_dac_buffer, buf, sizeof(ap_uint16_t) * cpy_len);
 	ap_interrupt_enable();
 	return cpy_len / sizeof(ap_uint16_t);
 }
 
 void DMA2_Channel3_IRQHandler(void)
 {
-  if(DMA_GetITStatus(DMA2_IT_TC3))
-  {
-    ap_dac_writable = AP_TRUE;
-    DMA_ClearITPendingBit(DMA2_IT_TC3);
-  }
+	if(DMA_GetITStatus(DMA2_IT_TC3)) {
+		ap_dac_writable = AP_TRUE;
+		DMA_ClearITPendingBit(DMA2_IT_TC3);
+	}
 }
