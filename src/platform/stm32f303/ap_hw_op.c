@@ -24,45 +24,53 @@ ap_bool ap_op_init()
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 	
 	GPIO_InitTypeDef GPIO_InitStructure;
-	//+
+	/* op3 standalone op Au = 100 */
+	/* non-inverting input */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	//-
+	/* inverting input */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	//out 
+	/* output */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
-	//GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
-	//GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-	//GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	//GPIO_Init(GPIOB, &GPIO_InitStructure);
-	
-	//GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-	//GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-	//GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	//GPIO_Init(GPIOA, &GPIO_InitStructure);
-	
+	/* op2 follower */
+	/* non-inverting input */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	/* out */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
 	OPAMP_InitTypeDef OPAMP_InitStructure;
 	OPAMP_InitStructure.OPAMP_NonInvertingInput = OPAMP_NonInvertingInput_IO1;
-	OPAMP_InitStructure.OPAMP_InvertingInput =  OPAMP_InvertingInput_PGA;
+	OPAMP_InitStructure.OPAMP_InvertingInput =  OPAMP_InvertingInput_IO1;
 	OPAMP_Init(OPAMP_Selection_OPAMP3, &OPAMP_InitStructure);
-	OPAMP_PGAConfig(OPAMP_Selection_OPAMP3, OPAMP_OPAMP_PGAGain_16, OPAMP_PGAConnect_No);
+	//OPAMP_VrefConfig(OPAMP_Selection_OPAMP3, OPAMP_Vref_50VDDA);
 	
-	//OPAMP_InitStructure.OPAMP_NonInvertingInput = OPAMP_NonInvertingInput_IO2;
-	//OPAMP_InitStructure.OPAMP_InvertingInput =  OPAMP_InvertingInput_PGA;
-	//OPAMP_Init(OPAMP_Selection_OPAMP2, &OPAMP_InitStructure);
-	//OPAMP_PGAConfig(OPAMP_Selection_OPAMP2, OPAMP_OPAMP_PGAGain_2, OPAMP_PGAConnect_No);
+	//OPAMP_VrefConnectNonInvertingInput(OPAMP_Selection_OPAMP3, ENABLE);
+	//OPAMP_PGAConfig(OPAMP_Selection_OPAMP3, OPAMP_OPAMP_PGAGain_2, OPAMP_PGAConnect_No); 
+
+	
+	OPAMP_InitStructure.OPAMP_NonInvertingInput = OPAMP_NonInvertingInput_IO2;
+	OPAMP_InitStructure.OPAMP_InvertingInput =  OPAMP_InvertingInput_Vout;
+	OPAMP_Init(OPAMP_Selection_OPAMP2, &OPAMP_InitStructure);
 
 	OPAMP_Cmd(OPAMP_Selection_OPAMP3, ENABLE);
-	//OPAMP_Cmd(OPAMP_Selection_OPAMP2, ENABLE);
+	OPAMP_Cmd(OPAMP_Selection_OPAMP2, ENABLE);
+	
+	//OPAMP_StartCalibration(OPAMP_Selection_OPAMP3, ENABLE);
 	
 	return AP_TRUE;
 }
