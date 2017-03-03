@@ -21,7 +21,7 @@
 #include "common/ap_log.h"
 
 #define ADC_DR_ADDRESS    ((ap_uint32_t)0x50000040)
-#define AP_AGC_BUFFER_LENGTH 256
+#define AP_AGC_BUFFER_LENGTH 512
 
 static volatile ap_bool ap_adc_readable;
 static ap_uint16_t ap_adc_buffer[AP_AGC_BUFFER_LENGTH];

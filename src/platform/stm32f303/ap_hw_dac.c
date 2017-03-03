@@ -19,7 +19,7 @@
 #include "ap_hw_config.h"
 #include "ap_hw_internal.h"
 
-#define AP_AGC_BUFFER_LENGTH 256
+#define AP_AGC_BUFFER_LENGTH 512
 
 static volatile ap_bool ap_dac_writable;
 static ap_uint16_t ap_dac_buffer[AP_AGC_BUFFER_LENGTH];
