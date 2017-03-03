@@ -18,23 +18,20 @@
 
 #include "ap_agc.h"
 #include "ap_ringbuffer.h"
+#include "platform/ap_hardware.h"
+#include "common/ap_log.h"
 
-#define AP_AGC_RINGBUFFER_LENGTH 100
-#define AP_AGC_THRESHOLD 1024
+#define AP_AGC_BUFFER_LENGTH 256
 
 struct ap_agc {
+	/* g argument */
+	ap_uint32_t arg;
 
-	/* current peak */
-	ap_uint16_t cur_peak;
-	ap_uint16_t arg;
-
-	/* period check */
-	ap_uint16_t period_count;
-	ap_uint16_t period_peak;
-
-	/* agc cal buffer */
-	ap_ringbuffer_t rb;
-	ap_int16_t data[AP_AGC_RINGBUFFER_LENGTH];
+	ap_uint32_t peak;
+	
+	ap_uint32_t goal;
+	
+	ap_int16_t data[AP_AGC_BUFFER_LENGTH];
 
 };
 
@@ -52,48 +49,87 @@ ap_bool ap_agc_get(ap_agc_t** agc)
 
 ap_bool ap_agc_init(ap_agc_t* agc)
 {
-	ap_ringbuffer_init(&agc->rb, agc->data, AP_AGC_RINGBUFFER_LENGTH);
-	agc->cur_peak = 0;
-	agc->arg = 1;
-	agc->period_count = 0;
-	agc->period_peak = 0;
+	agc->peak = 1800;
+	agc->goal = 1800;
 	return AP_TRUE;
 }
 
-ap_bool ap_agc_adjust(ap_agc_t* agc, ap_int16_t val, ap_int16_t* out)
+static ap_bool ap_agc_run(ap_agc_t* agc) {
+	ap_uint16_t cur_peak = agc->peak;
+	for(ap_uint32_t i = 0; i < AP_AGC_BUFFER_LENGTH; ++i) {
+		if (abs(agc->data[i]) < 300) {
+			continue;
+		}
+		if (abs(agc->data[i]) > cur_peak) {
+			cur_peak = abs(agc->data[i]);
+		}
+		//ap_log("******************data:%d, peak:%d\r\n", agc->data[i], cur_peak);
+		agc->data[i] = agc->data[i] * (float)(agc->goal / cur_peak);
+		//ap_log("==================data:%d\r\n", agc->data[i]);
+	}
+	if (cur_peak < agc->peak) {
+		agc->peak = cur_peak;
+	}
+	return AP_TRUE;
+}
+
+ap_bool ap_agc_start(ap_agc_t* agc)
+{
+	while(1) {
+		ap_agc_read_one_frame(agc);
+		//ap_agc_dump_raw_data(agc);
+		ap_agc_run(agc);
+		//ap_agc_dump_raw_data(agc);
+		ap_agc_write_one_frame(agc);
+	}
+	return AP_TRUE;
+}
+
+ap_bool ap_agc_set_one_frame_finish_callback(ap_agc_t* agc, ap_agc_one_frame_finish_callback cb)
+{
+	return AP_TRUE;
+}
+
+ap_bool ap_agc_dump_raw_data(ap_agc_t* agc)
+{
+	ap_int32_t sum = 0;
+	if (agc == NULL) {
+		return AP_FALSE;
+	}
+	ap_log("dump agc data:\r\n");
+	for(ap_uint32_t i = 0; i < AP_AGC_BUFFER_LENGTH; ++i) {
+		ap_log("%d ", agc->data[i]);
+		sum += agc->data[i];
+	}
+	ap_log("\r\naverage:%d\r\n", sum / AP_AGC_BUFFER_LENGTH);
+	return AP_TRUE;
+}
+
+ap_bool ap_agc_read_one_frame(ap_agc_t* agc)
+{
+	ap_uint32_t peak = 0;
+	ap_uint32_t trough = 2048;
+	if (agc == NULL) {
+		return AP_FALSE;
+	}
+	ap_adc_read_one_frame((ap_uint16_t*)agc->data, AP_AGC_BUFFER_LENGTH);
+	
+	for(ap_uint32_t i = 0; i < AP_AGC_BUFFER_LENGTH; ++i) {
+		agc->data[i] -= 2048;
+	}
+	return AP_TRUE;
+}
+
+ap_bool ap_agc_write_one_frame(ap_agc_t* agc)
 {
 	if (agc == NULL) {
 		return AP_FALSE;
 	}
-
-	/* period check (per 1024 samples) */
-	if (agc->period_count < AP_AGC_RINGBUFFER_LENGTH) {
-		agc->period_count++;
+	for(ap_uint32_t i = 0; i < AP_AGC_BUFFER_LENGTH; ++i) {
+		agc->data[i] += 2048;
 	}
-	else {
-		agc->period_count = 0;
-		agc->period_peak = ap_ringbuffer_get_max_mod(&agc->rb);
-	}
-	ap_ringbuffer_add(&agc->rb, val);
-
-	/* single check */
-	if (ap_abs(val) > AP_AGC_THRESHOLD) {
-		if (ap_abs(val) > agc->cur_peak) {
-			agc->cur_peak = ap_abs(val);
-		}
-	}
-	else {
-		*out = val;
-		return AP_TRUE;
-	}
-
-	if (agc->period_peak < agc->cur_peak) {
-		agc->cur_peak = agc->period_peak;
-		agc->arg = (AP_AGC_THRESHOLD << 4) / agc->cur_peak;
-	}
-
-	*out = (val * agc->arg) >> 4;
-
+	ap_dac_write_one_frame((ap_uint16_t*)agc->data, AP_AGC_BUFFER_LENGTH);
 	return AP_TRUE;
 }
+
 #endif

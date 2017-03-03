@@ -23,7 +23,7 @@
 #include "platform/ap_hardware.h"
 #include "common/ap_log.h"
 
-#define AP_AGC_BUFFER_LENGTH 10
+#define AP_AGC_BUFFER_LENGTH 250
 
 void _speex_putc(int ch, void *file)
 {
@@ -43,7 +43,7 @@ struct ap_agc {
 	ap_int16_t data[AP_AGC_BUFFER_LENGTH];
 	ap_uint32_t data_size;
 	SpeexPreprocessState *st;
-	ap_uint32_t bps;
+	ap_uint32_t sample_per_second;
 	ap_uint32_t resolution;
 	ap_uint32_t enable;
 	ap_uint32_t vad;
@@ -63,27 +63,41 @@ ap_bool ap_agc_init(ap_agc_t* agc)
 	if (agc == NULL) {
 		return AP_FALSE;
 	}
-	agc->bps = 16000;
+	ap_int32_t ret = 0;
+	agc->sample_per_second = 15625;
 	agc->resolution = 16;
-	agc->st = speex_preprocess_state_init(AP_AGC_BUFFER_LENGTH, agc->bps);
+	agc->st = speex_preprocess_state_init(AP_AGC_BUFFER_LENGTH, agc->sample_per_second);
+	if (agc->st < 0) {
+		ap_log("speex_preprocess_state_init failed\r\n");
+	}
 	agc->enable = 1;
 	agc->data_size = 0;
 	agc->cb = NULL;
-	speex_preprocess_ctl(agc->st, SPEEX_PREPROCESS_SET_AGC, &agc->enable);
-	speex_preprocess_ctl(agc->st, SPEEX_PREPROCESS_SET_AGC_LEVEL, &agc->bps);
+	ret = speex_preprocess_ctl(agc->st, SPEEX_PREPROCESS_SET_AGC, &agc->enable);
+	if (ret < 0) {
+		ap_log("SPEEX_PREPROCESS_SET_AGC failed\r\n");
+	}
+	float f = 500;
+	ret = speex_preprocess_ctl(agc->st, SPEEX_PREPROCESS_SET_AGC_LEVEL, &f);
+	if (ret < 0) {
+		ap_log("SPEEX_PREPROCESS_SET_AGC_LEVEL failed\r\n");
+	}
 	
 	return AP_TRUE;
 }
 
 ap_bool ap_agc_start(ap_agc_t* agc)
 {
+	ap_int32_t gain = 0;
+	ap_int32_t ret = 0;
 	while(1) {
 		ap_agc_read_one_frame(agc);
-		speex_preprocess_run(agc->st, agc->data);
-		//ap_agc_write_one_frame(agc);
-		if (agc->cb) {
-			agc->cb(agc->data, agc->data_size);
-		}
+		ret = speex_preprocess_run(agc->st, agc->data);
+		ap_log("speex_preprocess_run: %d\r\n", ret);
+		speex_preprocess_ctl(agc->st, SPEEX_PREPROCESS_GET_AGC_GAIN, &gain);
+		ap_log("current gain: %d\r\n", gain);
+		ap_agc_dump_raw_data(agc);
+		ap_agc_write_one_frame(agc);
 	}
 }
 ap_bool ap_agc_set_one_frame_finish_callback(ap_agc_t* agc, ap_agc_one_frame_finish_callback cb)
@@ -107,12 +121,16 @@ ap_bool ap_agc_dump_raw_data(ap_agc_t* agc)
 	ap_log("\r\n");
 	return AP_TRUE;
 }
+
 ap_bool ap_agc_read_one_frame(ap_agc_t* agc)
 {
 	if (agc == NULL) {
 		return AP_FALSE;
 	}
 	agc->data_size = ap_adc_read_one_frame((ap_uint16_t*)agc->data, AP_AGC_BUFFER_LENGTH);
+	for(ap_uint32_t i = 0; i < AP_AGC_BUFFER_LENGTH; ++i) {
+		agc->data[i] -= 2048;
+	}
 	return AP_TRUE;
 }
 
@@ -121,7 +139,10 @@ ap_bool ap_agc_write_one_frame(ap_agc_t* agc)
 	if (agc == NULL) {
 		return AP_FALSE;
 	}
-	ap_dac_write_one_frame((ap_uint16_t*)agc->data, agc->data_size);
+	for(ap_uint32_t i = 0; i < AP_AGC_BUFFER_LENGTH; ++i) {
+		agc->data[i] += 2048;
+	}
+	ap_dac_write_one_frame((ap_uint16_t*)agc->data, agc->data_size * 2);
 	return AP_TRUE;
 }
 #endif
