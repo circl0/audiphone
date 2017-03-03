@@ -546,6 +546,11 @@
               <FilePath>.\ap_hw_timer.c</FilePath>
             </File>
             <File>
+              <FileName>ap_hw_op.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ap_hw_op.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f30x_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\stm32f30x_it.c</FilePath>
@@ -554,11 +559,6 @@
               <FileName>system_stm32f30x.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\system_stm32f30x.c</FilePath>
-            </File>
-            <File>
-              <FileName>ap_hw_op.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\ap_hw_op.c</FilePath>
             </File>
           </Files>
         </Group>
