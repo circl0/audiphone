@@ -17,7 +17,7 @@
 #include "ap_hardware.h"
 #include "ap_hw_config.h"
 
-ap_bool ap_uart_init()
+ap_bool ap_uart_init(void)
 {
 
 	GPIO_InitTypeDef GPIO_InitStructure;

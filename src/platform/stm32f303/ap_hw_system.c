@@ -18,43 +18,40 @@
 #include "ap_hw_config.h"
 #include "ap_hw_internal.h"
 
-static ap_bool ap_system_timer_init()
+static ap_bool ap_system_timer_init(void)
 {
 	ap_systick_timer_init();
 	ap_adc_dac_timer_init();
 	return AP_TRUE;
 }
 
-static ap_bool ap_system_clock_init()
+static ap_bool ap_system_clock_init(void)
 {
   	return AP_TRUE;
 }
 
-ap_bool ap_interrupt_enable()
+ap_bool ap_interrupt_enable(void)
 {
 	__enable_irq();
 	return AP_TRUE;
 }
 
-ap_bool ap_interrupt_disable()
+ap_bool ap_interrupt_disable(void)
 {
 	__disable_irq();
 	return AP_TRUE;
 }
 
-ap_bool ap_system_init()
+ap_bool ap_system_init(void)
 {
-	//ap_interrupt_disable();
-	
 	ap_system_clock_init();
 	ap_system_timer_init();
 	
 	ap_uart_init();
+	
 	ap_op_init();
 	ap_adc_init(AP_ADC_12BIT);
 	ap_dac_init(AP_DAC_12BIT);
-
-	//ap_interrupt_enable();
 	
 	return AP_TRUE;
 }

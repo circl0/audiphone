@@ -23,7 +23,7 @@
 
 
 
-ap_bool ap_log_system_init()
+ap_bool ap_log_system_init(void)
 {
 #ifdef AP_LOG_ENABLE
 	return ap_uart_init();

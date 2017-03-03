@@ -21,7 +21,7 @@
 
 #define AP_LOG_ENABLE  1
 
-ap_bool ap_log_system_init();
+ap_bool ap_log_system_init(void);
 
 void ap_log(const ap_int8_t* fmt, ...);
 

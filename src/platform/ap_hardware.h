@@ -41,7 +41,7 @@ enum ap_dac_type {
  *
  * @since 0.1
  */
-ap_bool ap_system_init();
+ap_bool ap_system_init(void);
 
 /**
  * Enable the interrupts.
@@ -50,7 +50,7 @@ ap_bool ap_system_init();
  *
  * @since 0.1
  */
-ap_bool ap_interrupt_enable();
+ap_bool ap_interrupt_enable(void);
 
 /**
  * Disable the interrupts.
@@ -59,7 +59,7 @@ ap_bool ap_interrupt_enable();
  *
  * @since 0.1
  */
-ap_bool ap_interrupt_disable();
+ap_bool ap_interrupt_disable(void);
 
 /**
  * Initial the adc.
@@ -112,7 +112,7 @@ ap_uint32_t ap_dac_write_one_frame(ap_uint16_t* buf, ap_uint32_t len);
  *
  * @since 0.1
  */
-ap_bool ap_uart_init();
+ap_bool ap_uart_init(void);
 
 /**
  * Write to uart.
@@ -132,6 +132,6 @@ ap_bool ap_uart_putchar(ap_int8_t val);
  *
  * @since 0.1
  */
-ap_uint32_t ap_get_tickcount();
+ap_uint32_t ap_get_tickcount(void);
 
 #endif /* SRC_HW_AP_HARDWARE_H_ */

@@ -25,7 +25,6 @@ typedef ap_bool(*ap_agc_one_frame_finish_callback)(ap_int16_t* buffer, ap_uint32
 ap_bool ap_agc_get(ap_agc_t** agc);
 ap_bool ap_agc_init(ap_agc_t* agc);
 ap_bool ap_agc_start(ap_agc_t* agc);
-ap_bool ap_agc_set_one_frame_finish_callback(ap_agc_t* agc, ap_agc_one_frame_finish_callback cb);
 ap_bool ap_agc_dump_raw_data(ap_agc_t* agc);
 ap_bool ap_agc_read_one_frame(ap_agc_t* agc);
 ap_bool ap_agc_write_one_frame(ap_agc_t* agc);

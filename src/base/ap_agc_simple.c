@@ -35,10 +35,6 @@ struct ap_agc {
 
 };
 
-static inline ap_int16_t ap_abs(ap_int16_t val) {
-	return val > 0 ? val : -val;
-}
-
 static ap_agc_t instance;
 
 ap_bool ap_agc_get(ap_agc_t** agc)
@@ -85,11 +81,6 @@ ap_bool ap_agc_start(ap_agc_t* agc)
 	return AP_TRUE;
 }
 
-ap_bool ap_agc_set_one_frame_finish_callback(ap_agc_t* agc, ap_agc_one_frame_finish_callback cb)
-{
-	return AP_TRUE;
-}
-
 ap_bool ap_agc_dump_raw_data(ap_agc_t* agc)
 {
 	ap_int32_t sum = 0;
@@ -107,8 +98,6 @@ ap_bool ap_agc_dump_raw_data(ap_agc_t* agc)
 
 ap_bool ap_agc_read_one_frame(ap_agc_t* agc)
 {
-	ap_uint32_t peak = 0;
-	ap_uint32_t trough = 2048;
 	if (agc == NULL) {
 		return AP_FALSE;
 	}

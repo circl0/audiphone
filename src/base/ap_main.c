@@ -21,18 +21,8 @@
 
 static ap_agc_t* agc;
 
-static ap_bool ap_dump(ap_int16_t* buffer, ap_uint32_t len)
+int main(void) 
 {
-	ap_agc_dump_raw_data(agc);
-	return AP_TRUE;
-}
-
-int main(void) {
-	
-	ap_uint16_t val;
-	ap_int16_t in;
-	ap_int16_t out;
-
 	ap_system_init();
 	
 	ap_log("ap system init has finished...\r\n");
@@ -40,7 +30,7 @@ int main(void) {
 	ap_agc_get(&agc);
 	
 	ap_agc_init(agc);
-	ap_agc_set_one_frame_finish_callback(agc, ap_dump);
+
 	ap_log("ap_agc_start\r\n");
 	ap_agc_start(agc);
 

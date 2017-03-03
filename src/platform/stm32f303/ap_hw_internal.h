@@ -20,10 +20,10 @@
 
 #include "common/ap_type.h"
 
-ap_bool ap_systick_timer_init();
+ap_bool ap_systick_timer_init(void);
 
-ap_bool ap_adc_dac_timer_init();
+ap_bool ap_adc_dac_timer_init(void);
 
-ap_bool ap_op_init();
+ap_bool ap_op_init(void);
 
 #endif /* SRC_HW_MSP430F43X_AP_HW_INTERNAL_H_ */
