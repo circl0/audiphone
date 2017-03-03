@@ -21,10 +21,9 @@
 #include "platform/ap_hardware.h"
 #include "common/ap_log.h"
 
-#define AP_AGC_BUFFER_LENGTH 256
+#define AP_AGC_BUFFER_LENGTH 512
 
 struct ap_agc {
-	/* g argument */
 	ap_uint32_t arg;
 
 	ap_uint32_t peak;
@@ -45,23 +44,21 @@ ap_bool ap_agc_get(ap_agc_t** agc)
 
 ap_bool ap_agc_init(ap_agc_t* agc)
 {
-	agc->peak = 1800;
-	agc->goal = 1800;
+	agc->peak = 100;
+	agc->goal = 1500;
 	return AP_TRUE;
 }
 
 static ap_bool ap_agc_run(ap_agc_t* agc) {
-	ap_uint16_t cur_peak = agc->peak;
+	ap_uint16_t cur_peak = 0;
 	for(ap_uint32_t i = 0; i < AP_AGC_BUFFER_LENGTH; ++i) {
-		if (abs(agc->data[i]) < 300) {
-			continue;
+		if (abs(agc->data[i]) > agc->peak) {
+			agc->peak = abs(agc->data[i]);
 		}
 		if (abs(agc->data[i]) > cur_peak) {
 			cur_peak = abs(agc->data[i]);
 		}
-		//ap_log("******************data:%d, peak:%d\r\n", agc->data[i], cur_peak);
-		agc->data[i] = agc->data[i] * (float)(agc->goal / cur_peak);
-		//ap_log("==================data:%d\r\n", agc->data[i]);
+		agc->data[i] = agc->data[i] * (float)agc->goal / agc->peak;
 	}
 	if (cur_peak < agc->peak) {
 		agc->peak = cur_peak;
@@ -73,9 +70,7 @@ ap_bool ap_agc_start(ap_agc_t* agc)
 {
 	while(1) {
 		ap_agc_read_one_frame(agc);
-		//ap_agc_dump_raw_data(agc);
 		ap_agc_run(agc);
-		//ap_agc_dump_raw_data(agc);
 		ap_agc_write_one_frame(agc);
 	}
 	return AP_TRUE;
